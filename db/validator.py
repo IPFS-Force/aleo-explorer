@@ -95,11 +95,19 @@ class DatabaseValidator(DatabaseBase):
                     else:
                         validator_counts = 0
                     await cur.execute(
+                        "SELECT height FROM block WHERE timestamp > %s ORDER BY timestamp LIMIT 1",
+                        (timestamp - 86400,)
+                    )
+                    res = await cur.fetchone()
+                    if res:
+                        height = res["height"]
+                    else:
+                        return None
+                    await cur.execute(
                         "SELECT count(chm.address) FROM committee_history_member chm "
                         "JOIN committee_history ch ON chm.committee_id = ch.id "
-                        "JOIN block b ON ch.height = b.height "
-                        "WHERE b.timestamp > %s AND chm.address = %s",
-                        (timestamp - 86400, address)
+                        "WHERE ch.height > %s AND chm.address = %s",
+                        (height, address)
                     )
                     res = await cur.fetchone()
                     if res:
