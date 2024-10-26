@@ -1708,6 +1708,7 @@ class DatabaseInsert(DatabaseBase):
                 signal.pthread_sigmask(signal.SIG_UNBLOCK, {signal.SIGINT})
         except KeyboardInterrupt as e:
             import traceback
+            print("Interrupted during block insert!")
             traceback.print_exc()
             raise
 

@@ -1,6 +1,6 @@
 # Aleo Explorer
 
-[The "official" instance](https://testnet.aleoscan.io)
+[The "official" instance](https://aleoscan.io)
 
 ## Description
 
@@ -12,11 +12,11 @@ connect to peers that you trust.
 ## Prerequisites
 
 * Python 3.10 or 3.11.4+ (3.11.0 - 3.11.3 [won't work](https://github.com/python/cpython/pull/103514))
-* Postgres 12+ ~~(pg_hint_plan for best performance, `shared_preload_libraries` recommended)~~ not being used right now
-* Redis not too old
-* Rust latest stable
+* Postgres 14+
+* Redis / Valkey not too old
+* Rust 1.81+
 * [aleo-explorer-rust](https://github.com/HarukaMa/aleo-explorer-rust)
-* [aleo-explorer-wasm](https://github.com/HarukaMa/aleo-explorer-wasm)
+* [aleo-explorer-wasm](https://github.com/HarukaMa/aleo-explorer-wasm) (optional for old frontend)
 * (optional) [`setproctitle`](https://pypi.org/project/setproctitle/) for custom process names
 
 ## Usage
