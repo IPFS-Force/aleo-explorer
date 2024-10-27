@@ -551,7 +551,10 @@ class DatabaseInsert(DatabaseBase):
             if not prior_tx:
                 original_transaction_id = None
                 if confirmed_transaction is not None:
-                    original_transaction_id = aleo_explorer_rust.rejected_tx_original_id(confirmed_transaction.dump())
+                    if isinstance(confirmed_transaction, (AcceptedDeploy, AcceptedExecute)):
+                        original_transaction_id = str(confirmed_transaction.transaction.id)
+                    else:
+                        original_transaction_id = aleo_explorer_rust.rejected_tx_original_id(confirmed_transaction.dump())
                 await cur.execute(
                     "INSERT INTO transaction (transaction_id, type, original_transaction_id) "
                     "VALUES (%s, %s, %s) RETURNING id",
