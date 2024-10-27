@@ -6,7 +6,7 @@ from starlette.responses import JSONResponse
 from aleo_types import Program, Value, LiteralPlaintextType, LiteralPlaintext, \
     Literal, StructPlaintextType, StructPlaintext
 from aleo_types.cached import cached_get_key_id
-from api.utils import async_check_sync, use_program_cache
+from api.utils import async_check_sync, use_program_cache, parse_history_params
 from db import Database
 
 
@@ -14,10 +14,16 @@ from db import Database
 @use_program_cache
 async def mapping_route(request: Request, program_cache: dict[str, Program]):
     db: Database = request.app.state.db
-    _ = request.path_params["version"]
+    version = request.path_params["version"]
     program_id = request.path_params["program_id"]
     mapping = request.path_params["mapping"]
     key = request.path_params["key"]
+    height = request.query_params.get("height")
+    time_str = request.query_params.get("time")
+
+    if (height or time_str) and version < 3:
+        return JSONResponse({"error": "This endpoint does not support height or time parameter in this version"}, status_code=400)
+
     try:
         program = program_cache[program_id]
     except KeyError:
@@ -47,10 +53,33 @@ async def mapping_route(request: Request, program_cache: dict[str, Program]):
     else:
         return JSONResponse({"error": "Unknown key type"}, status_code=500)
     key_id = cached_get_key_id(program_id, mapping, key.dump())
-    value = await db.get_mapping_value(program_id, mapping, key_id)
-    if value is None:
-        return JSONResponse(None)
-    return JSONResponse(str(Value.load(BytesIO(value))))
+
+
+    if height or time_str:
+        parse_result = await parse_history_params(db, height, time_str)
+        if isinstance(parse_result, JSONResponse):
+            return parse_result
+        height, _, block_timestamp = parse_result
+        value_bytes = await db.get_mapping_value_at_height(program_id, mapping, key_id, height)
+
+    else:
+        value_bytes = await db.get_mapping_value(program_id, mapping, key_id)
+        height = await db.get_latest_height()
+        block_timestamp = await db.get_latest_block_timestamp()
+
+    if value_bytes is None:
+        value = None
+    else:
+        value = Value.load(BytesIO(value_bytes))
+
+    if version < 3:
+        return JSONResponse(str(value))
+
+    return JSONResponse({
+        "height": height,
+        "timestamp": block_timestamp,
+        "value": None if value is None else str(value),
+    })
 
 @async_check_sync
 @use_program_cache

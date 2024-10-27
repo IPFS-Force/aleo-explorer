@@ -13,8 +13,8 @@ Address Staking Info / History
    :query time: (optional) retrieve data at a specific time. Accepts a number as unix epoch, or a string in ISO 8601 format. Mutually exclusive with ``height``.
    :>json int height: block height of the data.
    :>json int timestamp: block timestamp.
-   :>json int amount: bonded amount of the address in microcredits.
-   :>json int validator: validator the address is / was bonded to.
+   :>json str amount: bonded amount of the address in microcredits.
+   :>json str validator: validator the address is / was bonded to.
 
    Get the staking info of an address, now or at specific time in the past.
    Returns ``null`` if the address is not bonded.
@@ -55,7 +55,7 @@ Address Delegated Credits / History
    :query time: (optional) retrieve data at a specific time. Accepts a number as unix epoch, or a string in ISO 8601 format. Mutually exclusive with ``height``.
    :>json int height: block height of the data.
    :>json int timestamp: block timestamp.
-   :>json int amount: delegated amount of the address in microcredits.
+   :>json str amount: delegated amount of the address in microcredits.
 
    Get the amount of tokens delegated to the address, now or at specific time in the past.
    Returns ``null`` if no tokens are delegated to the address.

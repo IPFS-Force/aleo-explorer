@@ -10,20 +10,28 @@ Mapping API
 Get Mapping Value
 -----------------
 
-.. http:get:: /v1/mapping/get_value/(program_id)/(mapping_id)/(key)
+.. http:get:: /v3/mapping/get_value/(program_id)/(mapping_id)/(key)
 
-   Get the mapping value, given the program ID, mapping name and key.
+   :query height: (optional) retrieve data at a specific block height. Mutually exclusive with ``time``.
+   :query time: (optional) retrieve data at a specific time. Accepts a number as unix epoch, or a string in ISO 8601 format. Mutually exclusive with ``height``.
+   :>json int height: block height of the data.
+   :>json int timestamp: block timestamp.
+   :>json str value: value of the requested key in the mapping.
 
-   Returns ``null`` if the key doesn't exist in the mapping.
+   Get the mapping value, given the program ID, mapping name and key. Optionally, the value at specified height or time.
 
-   .. tip::
-      Equivalent snarkOS API: ``/mainnet/program/{programID}/mapping/{mappingName}/{mappingKey}``
+   The value will be ``null`` if the key doesn't exist in the mapping.
+
+   .. versionchanged:: 3
+      Added ``height`` and ``time`` query parameters, so it's now possible to get the value at a specific block height or time.
+      Note the return format has changed to include the ``height`` and ``timestamp`` fields with v3.
+      Earlier versions of the API will return only the value (not changed).
 
    **Example request**:
 
    .. sourcecode:: http
 
-      GET /v1/mapping/get_value/credits.aleo/account/aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px HTTP/1.1
+      GET /v3/mapping/get_value/credits.aleo/account/aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px HTTP/1.1
       Host: api.aleoscan.io
 
    **Example response**:
