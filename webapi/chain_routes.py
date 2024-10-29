@@ -489,7 +489,7 @@ async def search_route(request: Request):
         return CJSONResponse({"error": "You have leaked your private key"})
     too_many = False
     all_names = await arc0137.get_all_names(db)
-    names = [name.startswith(query) for name in all_names]
+    names = list(filter(lambda name: name.startswith(query), all_names))
     programs = await db.search_program(query)
     if len(programs) > 50:
         too_many = True

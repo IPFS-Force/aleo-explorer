@@ -155,33 +155,29 @@ async def get_all_names(db: Database) -> list[str]:
     values: list[PlaintextValue] = [x["value"] for x in mapping.values()]
     plaintexts = cast(list[StructPlaintext], [x.plaintext for x in values])
     # TODO: add session-persistent name hash cache in the future when there are too many names
-    name_hash_cache: dict[Field, str] = {}
-    token_values: dict[str, Field] = {}
+    name_hash_cache: dict[Field, tuple[str, Field]] = {}
+    token_values: list[tuple[str, Field]] = []
     for st in plaintexts:
+        name_array = cast(ArrayPlaintext, st["name"])
         data: list[u128] = [
-            cast(u128, cast(LiteralPlaintext, st["data1"]).literal.primitive),
-            cast(u128, cast(LiteralPlaintext, st["data2"]).literal.primitive),
-            cast(u128, cast(LiteralPlaintext, st["data3"]).literal.primitive),
-            cast(u128, cast(LiteralPlaintext, st["data4"]).literal.primitive),
+            cast(u128, cast(LiteralPlaintext, x).literal.primitive) for x in name_array
         ]
         name = string_from_u128_list_le(data)
-        token_values[name] = cast(Field, cast(LiteralPlaintext, st["parent"]).literal.primitive)
+        token_values.append((name, cast(Field, cast(LiteralPlaintext, st["parent"]).literal.primitive)))
         name_st = StructPlaintext(
             members=Vec[Tuple[Identifier, Plaintext], u8]([
-                Tuple[Identifier, Plaintext]((Identifier(value="data1"), st["data1"])),
-                Tuple[Identifier, Plaintext]((Identifier(value="data2"), st["data2"])),
-                Tuple[Identifier, Plaintext]((Identifier(value="data3"), st["data3"])),
-                Tuple[Identifier, Plaintext]((Identifier(value="data4"), st["data4"])),
+                Tuple[Identifier, Plaintext]((Identifier(value="name"), name_array)),
+                Tuple[Identifier, Plaintext]((Identifier(value="parent"), cast(LiteralPlaintext, st["parent"]))),
             ])
         )
-        name_hash_cache[_get_name_hash(name_st)] = name
+        name_hash_cache[_get_name_hash(name_st)] = (name, cast(Field, cast(LiteralPlaintext, st["parent"]).literal.primitive))
     names: list[str] = []
     def resolve_name(partial_name: str, _parent_hash: Field) -> str:
         if _parent_hash == Field(0):
             return partial_name
-        next_name = name_hash_cache[_parent_hash]
-        return resolve_name(f"{partial_name}.{next_name}", parent_hash)
-    for name, parent_hash in token_values.items():
+        next_name, next_parent_hash = name_hash_cache[_parent_hash]
+        return resolve_name(f"{partial_name}.{next_name}", next_parent_hash)
+    for name, parent_hash in token_values:
         names.append(resolve_name(name, parent_hash))
     return names
 
