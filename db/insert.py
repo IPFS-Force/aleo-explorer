@@ -1221,7 +1221,7 @@ class DatabaseInsert(DatabaseBase):
         if height != 0:
             now = time.monotonic()
             history = False
-            if self.redis_last_history_time + 21600 < now:
+            if self.redis_last_history_time + 21600 < now or height % 500000 == 0:
                 self.redis_last_history_time = now
                 history = True
             for key in keys:
@@ -1233,7 +1233,8 @@ class DatabaseInsert(DatabaseBase):
                         if history:
                             history_key = f"{key}:history:{height - 1}"
                             await redis_conn.rename(backup_key, history_key) # type: ignore[arg-type]
-                            await redis_conn.expire(history_key, 60 * 60 * 24 * 3)
+                            if height % 500000 != 0:
+                                await redis_conn.expire(history_key, 60 * 60 * 24 * 3)
                         else:
                             await redis_conn.delete(backup_key)
 

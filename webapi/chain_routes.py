@@ -478,13 +478,13 @@ async def search_route(request: Request):
     if query is None:
         return CJSONResponse({"error": "Missing query"}, status_code=400)
     query = query.lower().strip()
-    if len(query) < 3:
-        return CJSONResponse({"error": "Query too short"}, status_code=400)
     try:
         height = int(query)
         return CJSONResponse({"type": "block", "height": height})
     except ValueError:
         pass
+    if len(query) < 3:
+        return CJSONResponse({"error": "Query too short"}, status_code=400)
     if query.startswith("aprivatekey1zkp"):
         return CJSONResponse({"error": "You have leaked your private key"})
     too_many = False
