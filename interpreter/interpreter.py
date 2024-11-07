@@ -32,7 +32,7 @@ async def _execute_public_fee(db: Database, cur: psycopg.AsyncCursor[dict[str, A
         raise RuntimeError("program not found")
 
     inputs: list[Value] = load_input_from_arguments(future.arguments)
-    return await execute_finalizer(db, cur, finalize_state, [fee_transition], 0, program, future.function_name, inputs,
+    return await execute_finalizer(db, cur, finalize_state, [fee_transition], 0, set(), program, future.function_name, inputs,
                                    mapping_cache, local_mapping_cache, allow_state_change)
 
 async def finalize_deploy(db: Database, cur: psycopg.AsyncCursor[dict[str, Any]], finalize_state: FinalizeState,
