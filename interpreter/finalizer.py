@@ -45,11 +45,12 @@ class ExecuteError(Exception):
 
 @profile
 async def execute_finalizer(db: Database, cur: Optional[psycopg.AsyncCursor[dict[str, Any]]], finalize_state: FinalizeState,
-                            transitions: list[Transition], transition_index: int, program: Program,
-                            function_name: Identifier, inputs: list[Value],
+                            transitions: list[Transition], transition_index: int, transition_index_executed: set[int],
+                            program: Program, function_name: Identifier, inputs: list[Value],
                             mapping_cache: dict[Field, MappingCacheDict],
                             local_mapping_cache: dict[Field, MappingCacheDict],
                             allow_state_change: bool) -> list[dict[str, Any]]:
+    transition_index_executed.add(transition_index)
     registers = Registers()
     operations: list[dict[str, Any]] = []
     function = program.functions[function_name]
@@ -269,11 +270,12 @@ async def execute_finalizer(db: Database, cur: Optional[psycopg.AsyncCursor[dict
                 next_index = transition_index - 1
                 for i in range(next_index, -1, -1):
                     if call_program.id == transitions[i].program_id and call_future.function_name == transitions[i].function_name:
-                        next_index = i
-                        break
+                        if i not in transition_index_executed:
+                            next_index = i
+                            break
 
                 operations.extend(
-                    await execute_finalizer(db, cur, finalize_state, transitions, next_index, call_program, call_future.function_name, call_inputs, mapping_cache, local_mapping_cache, allow_state_change)
+                    await execute_finalizer(db, cur, finalize_state, transitions, next_index, transition_index_executed, call_program, call_future.function_name, call_inputs, mapping_cache, local_mapping_cache, allow_state_change)
                 )
 
             else:

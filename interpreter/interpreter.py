@@ -118,7 +118,7 @@ async def finalize_execute(db: Database, cur: psycopg.AsyncCursor[dict[str, Any]
             inputs: list[Value] = load_input_from_arguments(future.arguments)
             try:
                 operations.extend(
-                    await execute_finalizer(db, cur, finalize_state, execution.transitions, len(execution.transitions) - 1, program, future.function_name, inputs, mapping_cache, local_mapping_cache, allow_state_change)
+                    await execute_finalizer(db, cur, finalize_state, execution.transitions, len(execution.transitions) - 1, set(), program, future.function_name, inputs, mapping_cache, local_mapping_cache, allow_state_change)
                 )
             except ExecuteError as e:
                 for ts in execution.transitions:
