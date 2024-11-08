@@ -11,7 +11,7 @@ connect to peers that you trust.
 
 ## Prerequisites
 
-* Python 3.10 or 3.11.4+ (3.11.0 - 3.11.3 [won't work](https://github.com/python/cpython/pull/103514))
+* Python 3.10 or 3.11.4-3.12.x (3.11.0 - 3.11.3 [won't work](https://github.com/python/cpython/pull/103514), reportedly 3.13 has some other issues)
 * Postgres 14+
 * Redis / Valkey not too old
 * Rust 1.81+
