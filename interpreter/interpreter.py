@@ -105,7 +105,6 @@ async def _trace_execution(db: Database, transition_ids: list[TransitionID], pro
                 raise RuntimeError("call analysis failed")
             call_index += 1
         elif isinstance(inst.literals, AsyncInstruction):
-            print(inst.literals.operands)
             for param_index, operand in enumerate(inst.literals.operands):
                 if isinstance(operand, RegisterOperand) and isinstance(operand.register, LocatorRegister):
                     if operand.register.locator in future_register_map:
@@ -115,7 +114,6 @@ async def _trace_execution(db: Database, transition_ids: list[TransitionID], pro
         if isinstance(cmd, AwaitCommand):
             locator = cmd.register.locator
             if locator not in finalize_register_map:
-                print(locator)
                 raise RuntimeError("invalid await command")
             called_node = finalize_register_map[locator]
             async_order.append(called_node["transition_id"])
@@ -141,7 +139,6 @@ async def build_async_order(db: Database, transition_ids: list[TransitionID], pr
 
     await _trace_execution(db, transition_ids, program, function_name, root_call_graph, async_order)
 
-    print(async_order)
     return async_order
 
 @profile
