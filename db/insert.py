@@ -1285,8 +1285,6 @@ class DatabaseInsert(DatabaseBase):
 
                             for ratification in block.ratifications:
                                 if isinstance(ratification, BlockRewardRatify):
-                                    # TODO: remove this
-                                    block_reward = ratification.amount
                                     if ratification.amount != block_reward:
                                         raise RuntimeError("invalid block reward")
                                 elif isinstance(ratification, PuzzleRewardRatify):
