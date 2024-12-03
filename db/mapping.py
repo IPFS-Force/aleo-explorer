@@ -105,19 +105,18 @@ class DatabaseMapping(DatabaseBase):
                         await cur.execute(
                             psycopg.sql.Composed([
                                 psycopg.sql.SQL(
-                                    "SELECT mv.id, mv.key_id, mv.key, mv.value"
-                                    "FROM mapping m"
+                                    "SELECT mv.id, mv.key_id, mv.key, mv.value "
+                                    "FROM mapping m "
                                     "CROSS JOIN LATERAL ("
-                                    "    SELECT id, key_id, key, value"
-                                    "FROM mapping_value"
-                                    "WHERE mapping_id = m.id"
+                                    "    SELECT id, key_id, key, value "
+                                    "    FROM mapping_value "
+                                    "    WHERE mapping_id = m.id "
                                 ),
                                 cursor_clause,
                                 psycopg.sql.SQL(
-                                    "ORDER BY id"
-                                    "LIMIT %s"
-                                    ") mv"
-                                    "WHERE m.program_id = %s AND m.mapping = %s"
+                                    "    ORDER BY id LIMIT %s"
+                                    ") mv "
+                                    "WHERE m.program_id = %s AND m.mapping = %s "
                                     "ORDER BY mv.id"
                                 )
                             ]),
