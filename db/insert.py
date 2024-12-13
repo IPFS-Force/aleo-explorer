@@ -788,10 +788,12 @@ class DatabaseInsert(DatabaseBase):
         await self.redis.delete("credits.aleo:bonded")
         await self.redis.hset("credits.aleo:bonded", mapping={k: json.dumps(v) for k, v in bonded_mapping.items()})
         await self.redis.execute_command("EXEC") # type: ignore
-        await cur.execute(
-            "INSERT INTO mapping_bonded_history (height, content) VALUES (%s, %s) RETURNING id",
-            (height, json.dumps({str(i["key"]): i["value"].dump().hex() for i in global_mapping_cache[bonded_mapping_id].values()}))
-        )
+        from node import Network
+        if Network.network_id != 2:
+            await cur.execute(
+                "INSERT INTO mapping_bonded_history (height, content) VALUES (%s, %s) RETURNING id",
+                (height, json.dumps({str(i["key"]): i["value"].dump().hex() for i in global_mapping_cache[bonded_mapping_id].values()}))
+            )
 
         global_mapping_cache[delegated_mapping_id] = {}
         delegated_mapping: dict[str, dict[str, str]] = {}
