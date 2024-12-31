@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import os
@@ -17,6 +16,7 @@ from explorer.types import Message as ExplorerMessage
 from util.global_cache import global_mapping_cache
 from .base import DatabaseBase, profile
 from .util import DatabaseUtil
+from config.pledge import PledgeConfig
 
 
 class _SupplyTracker:
@@ -54,6 +54,7 @@ class DatabaseInsert(DatabaseBase):
             "address_transfer_out",
             "address_fee",
         ]
+        self.pledge_config = PledgeConfig.from_env()  # 现在这里只会真正初始化一次
 
     @staticmethod
     async def _insert_future(cur: psycopg.AsyncCursor[DictRow], future: Future,
@@ -1145,6 +1146,13 @@ class DatabaseInsert(DatabaseBase):
                     supply_tracker.tally_block_reward(amount)
                 await pipe.execute() # type: ignore
 
+                # pledge_rewards_to_save = []
+                for address, amount in stake_rewards.items():
+                    if self.pledge_config.is_pledge_address(str(address)):
+                        # pledge_rewards_to_save.append((str(address), amount))
+                        await self.save_height_stake_reward(height, str(address), amount)
+
+
                 await self._update_committee_bonded_delegated_map(cur, committee_members, stakers, delegated, height)
                 starting_round = u64(round_)
                 members = Vec[Tuple[Address, u64, bool_, u8], u16]([
@@ -1746,3 +1754,12 @@ class DatabaseInsert(DatabaseBase):
                 except Exception as e:
                     await self.message_callback(ExplorerMessage(ExplorerMessage.Type.DatabaseError, e))
                     raise
+
+    async def save_height_stake_reward(self, height: int, address: str, amount: int):
+        """Save stake reward for pledge addresses at specific height"""
+        async with self.pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    "INSERT INTO height_stake_reward (height, address, amount) VALUES (%s, %s, %s)",
+                    (height, address, amount)
+                )
