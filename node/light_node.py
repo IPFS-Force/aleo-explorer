@@ -21,8 +21,10 @@ class LightNodeState:
         self.last_connect_attempt: dict[str, float] = {}
 
         # prevent infinite self connection loop
-        r = requests.get("https://api.ipify.org/?format=json")
-        self.self_ip = r.json()["ip"]
+        # r = requests.get("https://api.ipify.org/?format=json")
+        # self.self_ip = r.json()["ip"]
+        r = requests.get("https://ifconfig.me/")
+        self.self_ip = r.text
         print(f"self ip: {self.self_ip}")
         self.listener = LightNodeListener(self)
 
