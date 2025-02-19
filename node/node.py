@@ -253,7 +253,7 @@ class Node:
 
             start_block_height = latest_height + 1
             end_block_height = min(self.peer_block_height + 1, start_block_height + batch_size)
-            print(f"Synchronizing from block {start_block_height} to {end_block_height}")
+            print(f"{time.strftime('%Y-%m-%d %H:%M:%S')} Synchronizing from block {start_block_height} to {end_block_height}")
             self.is_syncing = True
 
             self.block_requests.extend(range(start_block_height, end_block_height))

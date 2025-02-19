@@ -1146,11 +1146,13 @@ class DatabaseInsert(DatabaseBase):
                     supply_tracker.tally_block_reward(amount)
                 await pipe.execute() # type: ignore
 
-                # pledge_rewards_to_save = []
                 for address, amount in stake_rewards.items():
                     if self.pledge_config.is_pledge_address(str(address)):
-                        # pledge_rewards_to_save.append((str(address), amount))
-                        await self.save_height_stake_reward(height, str(address), amount)
+                        await cur.execute(
+                            "INSERT INTO height_stake_reward (height, address, amount) VALUES (%s, %s, %s)",
+                            (height, str(address), amount)
+                        )
+                        # await self.save_height_stake_reward(height, str(address), amount)
 
 
                 await self._update_committee_bonded_delegated_map(cur, committee_members, stakers, delegated, height)
@@ -1238,7 +1240,9 @@ class DatabaseInsert(DatabaseBase):
                 backup_key = f"{key}:rollback_backup:{height}"
                 if await redis_conn.exists(backup_key) == 1:
                     if rollback:
+                        print(f"\n>>> ROLLBACK at height {height} - Restoring {key} from backup")
                         await redis_conn.copy(backup_key, key, replace=True) # type: ignore[arg-type]
+                        print(f">>> Rollback completed for {key}")
                     else:
                         if history:
                             history_key = f"{key}:history:{height - 1}"
